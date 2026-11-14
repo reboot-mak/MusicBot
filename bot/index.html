@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Music Search & Artists</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* APPLE MUSIC СТИЛЬ: Розмитий градієнтний фон */
+        body { 
+            background: radial-gradient(circle at top left, #2a1b3d, #000000 70%), 
+                        radial-gradient(circle at bottom right, #1a2a3a, #000000 70%);
+            background-attachment: fixed;
+            color: #ffffff; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; padding: 0; -webkit-font-smoothing: antialiased; user-select: none; -webkit-tap-highlight-color: transparent; 
+        }
+        input[type="text"] { user-select: auto; }
+        .page { display: none; padding-bottom: 80px; }
+        .page.active { display: block; }
+        
+        /* Скляний ефект для хедера */
+        .header { position: sticky; top: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 16px; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .search-container { display: flex; gap: 12px; }
+        .search-box { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; padding: 12px 16px; flex-grow: 1; }
+        .search-box input { background: transparent; border: none; color: white; font-size: 16px; width: 100%; outline: none; }
+        .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+        .search-btn { background-color: rgba(255,255,255,0.15); color: white; border: none; border-radius: 12px; padding: 0 20px; font-weight: 600; cursor: pointer; font-size: 15px; backdrop-filter: blur(10px); transition: 0.2s; }
+        .search-btn:active { background-color: rgba(255,255,255,0.25); }
+        
+        .section-title { font-size: 22px; font-weight: 700; margin: 24px 16px 12px 16px; }
+        .list-container { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+        
+        /* Скляні картки */
+        .item-card { display: flex; align-items: center; padding: 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.02); cursor: pointer; transition: all 0.2s; }
+        .item-card:active { background: rgba(255, 255, 255, 0.1); transform: scale(0.97); }
+        .track-cover { width: 54px; height: 54px; border-radius: 10px; margin-right: 14px; object-fit: cover; }
+        
+        /* Горизонтальні артисти */
+        .artists-scroll-h { display: flex; overflow-x: auto; gap: 16px; padding: 0 16px 10px 16px; scroll-behavior: smooth; }
+        .artists-scroll-h::-webkit-scrollbar { display: none; }
+        .artist-card-h { display: flex; flex-direction: column; align-items: center; width: 90px; flex-shrink: 0; cursor: pointer; gap: 8px; transition: transform 0.2s; }
+        .artist-card-h:active { transform: scale(0.95); }
+        .artist-card-h img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
+        .artist-card-h p { font-size: 13px; font-weight: 600; text-align: center; margin: 0; width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .item-info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
+        .item-title { font-size: 16px; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-subtitle { font-size: 14px; color: #a0a0a5; margin: 0; }
+        
+        .hero-section { position: relative; height: 300px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 20px; overflow: hidden; }
+        .hero-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.4); transform: scale(1.2); z-index: 1; }
+        .hero-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+        .profile-avatar { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.15); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .album-cover-large { width: 150px; height: 150px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .hero-title { font-size: 28px; font-weight: 800; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .hero-subtitle { font-size: 16px; color: #e5e5ea; font-weight: 600; margin: 0; }
+        
+        .back-btn { position: absolute; top: 16px; left: 16px; z-index: 10; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 18px; border-radius: 500px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .back-btn:active { background: rgba(0,0,0,0.6); }
+        
+        .albums-scroll { display: flex; overflow-x: auto; gap: 16px; padding: 0 16px 20px 16px; scroll-behavior: smooth; }
+        .albums-scroll::-webkit-scrollbar { display: none; }
+        .album-card { display: flex; flex-direction: column; width: 140px; flex-shrink: 0; gap: 8px; cursor: pointer; }
+        .album-cover { width: 140px; height: 140px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        .status-msg { text-align: center; color: #a0a0a5; padding: 60px 20px; font-size: 15px; font-weight: 500; }
+        .loader-icon { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .load-more-trigger { height: 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="mainPage" class="page active">
+        <div class="header">
+            <form id="searchForm" class="search-container" onsubmit="event.preventDefault(); triggerSearch();">
+                <div class="search-box"><input type="text" id="searchInput" placeholder="Artists, songs..." autocomplete="off"></div>
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </div>
+        <div id="statusContainer" class="status-msg">Enter a name to find music</div>
+        
+        <div id="searchResults" style="display: none;">
+            <div id="artistsSection">
+                <div class="section-title">Top Artists</div>
+                <div class="artists-scroll-h" id="artistsList"></div>
+            </div>
+            <div class="section-title">Songs</div>
+            <div class="list-container" id="tracksList"></div>
+            <!-- Тригер для нескінченного скролу -->
+            <div id="loadMoreTrigger" class="load-more-trigger"></div>
+            <div id="loadingMoreIcon" class="loader-icon" style="display:none; width: 20px; height: 20px; border-width: 2px;"></div>
+        </div>
+    </div>
+
+    <div id="artistPage" class="page">
+        <button class="back-btn" onclick="switchPage('mainPage')">← Back</button>
+        <div class="hero-section"><div class="hero-bg" id="artistBg"></div><div class="hero-content"><img src="" id="artistAvatar" class="profile-avatar"><h2 id="artistName" class="hero-title"></h2></div></div>
+        <div class="section-title">Popular Tracks</div><div class="list-container" id="artistTopTracks"></div>
+        <div class="section-title">Albums</div><div class="albums-scroll" id="artistAlbums"></div>
+    </div>
+
+    <div id="albumPage" class="page">
+        <button class="back-btn" onclick="switchPage('artistPage')">← Back</button>
+        <div class="hero-section"><div class="hero-bg" id="albumBg"></div><div class="hero-content"><img src="" id="albumCoverLarge" class="album-cover-large"><h2 id="albumTitleLarge" class="hero-title"></h2><p id="albumArtistSubtitle" class="hero-subtitle"></p></div></div>
+        <div class="section-title">Tracklist</div><div class="list-container" id="albumTracksList"></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp; 
+        tg.expand();
+
+        let allTracks = [];
+        let currentTrackIndex = 0;
+        const TRACKS_PER_PAGE = 20;
+
+        // --- НОВА ФУНКЦІЯ: Автоматичне приховування клавіатури ---
+        function hideKeyboard() {
+            const searchInput = document.getElementById('searchInput');
+            if (document.activeElement === searchInput) {
+                searchInput.blur(); // Знімає фокус і ховає клавіатуру
+            }
+        }
+
+        // Ховаємо клавіатуру, якщо користувач торкнувся екрану і потягнув
+        window.addEventListener('touchmove', hideKeyboard, { passive: true });
+        // Ховаємо клавіатуру, якщо відбувся звичайний скрол
+        window.addEventListener('scroll', hideKeyboard, { passive: true });
+        // ---------------------------------------------------------
+
+        function switchPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        async function triggerSearch() {
+            hideKeyboard(); // Одразу ховаємо клавіатуру при натисканні Search
+            
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            document.getElementById('statusContainer').style.display = 'block';
+            document.getElementById('statusContainer').innerHTML = '<div class="loader-icon"></div>';
+            document.getElementById('searchResults').style.display = 'none';
+            
+            try {
+                // Робимо один великий запит на 100 треків, з них витягнемо і обкладинки для артистів!
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=100`);
+                const data = await res.json();
+                renderSearchResults(data.results, query);
+            } catch (err) {
+                document.getElementById('statusContainer').innerHTML = 'Error fetching data. Please try again.';
+            }
+        }
+
+        function renderSearchResults(tracks, searchQuery) {
+            document.getElementById('statusContainer').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'block';
+            
+            const artistsList = document.getElementById('artistsList');
+            const tracksList = document.getElementById('tracksList');
+            artistsList.innerHTML = ''; 
+            tracksList.innerHTML = '';
+            
+            const queryLower = searchQuery.toLowerCase();
+            const artistScores = new Map();
+            
+            // Збираємо всіх артистів і даємо їм 1 бал за кожну знайдену пісню
+            // ВИКОРИСТОВУЄМО обкладинку першої знайденої пісні як аватарку артиста
+            tracks.forEach(t => { 
+                if(!artistScores.has(t.artistId)) {
+                    artistScores.set(t.artistId, {
+                        id: t.artistId, 
+                        name: t.artistName, 
+                        image: t.artworkUrl100 ? t.artworkUrl100.replace('100x100bb', '400x400bb') : 'https://ui-avatars.com/api/?name='+encodeURIComponent(t.artistName)+'&background=random',
+                        score: 0
+                    }); 
+                }
+                artistScores.get(t.artistId).score += 1;
+            });
+            
+            // МАГІЯ ПРІОРИТЕТУ: Якщо ти ввів частину або повне ім'я артиста, він отримує +100 балів!
+            artistScores.forEach(a => {
+                if (a.name.toLowerCase().includes(queryLower)) {
+                    a.score += 100;
+                }
+            });
+            
+            // Сортуємо і беремо топ 10 артистів для горизонтального скролу
+            const sortedArtists = Array.from(artistScores.values()).sort((a, b) => b.score - a.score).slice(0, 10);
+            
+            if (sortedArtists.length > 0) {
+                document.getElementById('artistsSection').style.display = 'block';
+                sortedArtists.forEach(a => {
+                    const el = document.createElement('div'); el.className = 'artist-card-h';
+                    el.innerHTML = `<img src="${a.image}"><p>${a.name}</p>`;
+                    el.onclick = () => openArtistProfile(a.id, a.name, a.image);
+                    artistsList.appendChild(el);
+                });
+            } else {
+                document.getElementById('artistsSection').style.display = 'none';
+            }
+
+            // 2. Готуємо пісні для нескінченного скролу
+            allTracks = tracks;
+            currentTrackIndex = 0;
+            loadMoreTracks();
+        }
+
+        function loadMoreTracks() {
+            if (currentTrackIndex >= allTracks.length) return;
+
+            const list = document.getElementById('tracksList');
+            const chunk = allTracks.slice(currentTrackIndex, currentTrackIndex + TRACKS_PER_PAGE);
+            
+            chunk.forEach(t => {
+                const el = document.createElement('div'); el.className = 'item-card';
+                let img = t.artworkUrl100 ? t.artworkUrl100.replace('100x100bb', '200x200bb') : '';
+                el.innerHTML = `<img src="${img}" class="track-cover"><div class="item-info"><p class="item-title">${t.trackName}</p><p class="item-subtitle">${t.artistName}</p></div>`;
+                el.onclick = () => sendToBot(t.trackName, t.artistName);
+                list.appendChild(el);
+            });
+
+            currentTrackIndex += TRACKS_PER_PAGE;
+        }
+
+        // Обсервер для нескінченного скролу (коли доходимо до низу екрану - вантажимо ще)
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                loadMoreTracks();
+            }
+        }, { rootMargin: '100px' });
+        observer.observe(document.getElementById('loadMoreTrigger'));
+
+        async function openArtistProfile(id, name, img) {
+            hideKeyboard(); // Ховаємо клавіатуру при переході на сторінку артиста
+            switchPage('artistPage');
+            document.getElementById('artistName').innerText = name;
+            document.getElementById('artistAvatar').src = img;
+            document.getElementById('artistBg').style.backgroundImage = `url(${img})`;
+            
+            document.getElementById('artistTopTracks').innerHTML = '<div class="loader-icon"></div>';
+            document.getElementById('artistAlbums').innerHTML = '';
+
+            const [tRes, aRes] = await Promise.all([
+                fetch(`https://itunes.apple.com/lookup?id=${id}&entity=song&limit=15`), 
+                fetch(`https://itunes.apple.com/lookup?id=${id}&entity=album&limit=15`)
+            ]);
+            const tData = await tRes.json(), aData = await aRes.json();
+            
+            const topTracks = document.getElementById('artistTopTracks'); topTracks.innerHTML = '';
+            tData.results.filter(i => i.wrapperType === 'track').forEach((t, i) => {
+                const el = document.createElement('div'); el.className = 'item-card';
+                let cover = t.artworkUrl100 ? t.artworkUrl100.replace('100x100bb','200x200bb') : '';
+                el.innerHTML = `<div style="width:20px; font-weight:bold; color:#8e8e93">${i+1}</div><img src="${cover}" class="track-cover" style="margin-left:10px;"><div class="item-info"><p class="item-title">${t.trackName}</p></div>`;
+                el.onclick = () => sendToBot(t.trackName, t.artistName);
+                topTracks.appendChild(el);
+            });
+
+            const albums = document.getElementById('artistAlbums'); albums.innerHTML = '';
+            aData.results.filter(i => i.wrapperType === 'collection').forEach(a => {
+                const el = document.createElement('div'); el.className = 'album-card';
+                let cover = a.artworkUrl100 ? a.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+                let hqCover = a.artworkUrl100 ? a.artworkUrl100.replace('100x100bb', '600x600bb') : '';
+                el.innerHTML = `<img src="${cover}" class="album-cover"><p class="album-title" style="font-size:13px; font-weight:600; margin:0;">${a.collectionName}</p>`;
+                el.onclick = () => openAlbumPage(a.collectionId, a.collectionName, hqCover, a.artistName);
+                albums.appendChild(el);
+            });
+        }
+
+        async function openAlbumPage(id, name, img, artist) {
+            hideKeyboard(); // Ховаємо клавіатуру при переході на сторінку альбому
+            switchPage('albumPage');
+            document.getElementById('albumTitleLarge').innerText = name;
+            document.getElementById('albumArtistSubtitle').innerText = artist;
+            document.getElementById('albumCoverLarge').src = img;
+            document.getElementById('albumBg').style.backgroundImage = `url(${img})`;
+            
+            const tracksList = document.getElementById('albumTracksList'); 
+            tracksList.innerHTML = '<div class="loader-icon"></div>';
+            
+            const res = await fetch(`https://itunes.apple.com/lookup?id=${id}&entity=song`);
+            const data = await res.json();
+            
+            tracksList.innerHTML = '';
+            data.results.filter(i => i.wrapperType === 'track').forEach((t, i) => {
+                const el = document.createElement('div'); el.className = 'item-card';
+                el.innerHTML = `<div style="width:30px; font-weight:bold; color:#8e8e93">${i+1}</div><div class="item-info" style="margin-left:12px;"><p class="item-title">${t.trackName}</p><p class="item-subtitle">${t.artistName}</p></div>`;
+                el.onclick = () => sendToBot(t.trackName, t.artistName);
+                tracksList.appendChild(el);
+            });
+        }
+
+        function sendToBot(trackName, artistName) { 
+            const searchQuery = `${artistName} - ${trackName}`;
+            tg.sendData(searchQuery); 
+            tg.close(); 
+        }
+    </script>
+</body>
+</html>
