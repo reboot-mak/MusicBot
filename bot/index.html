@@ -6,10 +6,12 @@
     <title>Music Search & Artists</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* APPLE MUSIC СТИЛЬ: Розмитий градієнтний фон */
+        /* ЧЕРВОНО-ЧОРНИЙ ГРАДІЄНТНИЙ ФОН У СТИЛІ АВАТАРКИ */
         body { 
-            background: radial-gradient(circle at top left, #2a1b3d, #000000 70%), 
-                        radial-gradient(circle at bottom right, #1a2a3a, #000000 70%);
+            background-color: #070102;
+            background-image: 
+                radial-gradient(circle at top left, #9e0b22 0%, rgba(90, 6, 20, 0.45) 45%, transparent 75%), 
+                radial-gradient(circle at bottom right, #5c0614 0%, rgba(40, 2, 8, 0.5) 50%, transparent 80%);
             background-attachment: fixed;
             color: #ffffff; 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, Helvetica, Arial, sans-serif; 
@@ -20,20 +22,20 @@
         .page.active { display: block; }
         
         /* Скляний ефект для хедера */
-        .header { position: sticky; top: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 16px; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .header { position: sticky; top: 0; background: rgba(15, 2, 5, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 16px; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .search-container { display: flex; gap: 12px; }
-        .search-box { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; padding: 12px 16px; flex-grow: 1; }
+        .search-box { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; display: flex; align-items: center; padding: 12px 16px; flex-grow: 1; }
         .search-box input { background: transparent; border: none; color: white; font-size: 16px; width: 100%; outline: none; }
         .search-box input::placeholder { color: rgba(255,255,255,0.5); }
-        .search-btn { background-color: rgba(255,255,255,0.15); color: white; border: none; border-radius: 12px; padding: 0 20px; font-weight: 600; cursor: pointer; font-size: 15px; backdrop-filter: blur(10px); transition: 0.2s; }
-        .search-btn:active { background-color: rgba(255,255,255,0.25); }
+        .search-btn { background-color: rgba(220, 20, 50, 0.35); border: 1px solid rgba(255, 80, 100, 0.2); color: white; border-radius: 12px; padding: 0 20px; font-weight: 600; cursor: pointer; font-size: 15px; backdrop-filter: blur(10px); transition: 0.2s; }
+        .search-btn:active { background-color: rgba(220, 20, 50, 0.55); }
         
         .section-title { font-size: 22px; font-weight: 700; margin: 24px 16px 12px 16px; }
         .list-container { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
         
         /* Скляні картки */
-        .item-card { display: flex; align-items: center; padding: 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.02); cursor: pointer; transition: all 0.2s; }
-        .item-card:active { background: rgba(255, 255, 255, 0.1); transform: scale(0.97); }
+        .item-card { display: flex; align-items: center; padding: 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: all 0.2s; }
+        .item-card:active { background: rgba(255, 255, 255, 0.12); transform: scale(0.97); }
         .track-cover { width: 54px; height: 54px; border-radius: 10px; margin-right: 14px; object-fit: cover; }
         
         /* Горизонтальні артисти */
@@ -46,7 +48,7 @@
         
         .item-info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
         .item-title { font-size: 16px; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-subtitle { font-size: 14px; color: #a0a0a5; margin: 0; }
+        .item-subtitle { font-size: 14px; color: #b5a8ab; margin: 0; }
         
         .hero-section { position: relative; height: 300px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 20px; overflow: hidden; }
         .hero-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.4); transform: scale(1.2); z-index: 1; }
@@ -64,8 +66,8 @@
         .album-card { display: flex; flex-direction: column; width: 140px; flex-shrink: 0; gap: 8px; cursor: pointer; }
         .album-cover { width: 140px; height: 140px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         
-        .status-msg { text-align: center; color: #a0a0a5; padding: 60px 20px; font-size: 15px; font-weight: 500; }
-        .loader-icon { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        .status-msg { text-align: center; color: #b5a8ab; padding: 60px 20px; font-size: 15px; font-weight: 500; }
+        .loader-icon { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.15); border-top-color: #ff2a4b; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
         .load-more-trigger { height: 20px; margin-top: 10px; }
@@ -116,19 +118,16 @@
         let currentTrackIndex = 0;
         const TRACKS_PER_PAGE = 20;
 
-        // --- НОВА ФУНКЦІЯ: Автоматичне приховування клавіатури ---
+        // --- Автоматичне приховування клавіатури ---
         function hideKeyboard() {
             const searchInput = document.getElementById('searchInput');
             if (document.activeElement === searchInput) {
-                searchInput.blur(); // Знімає фокус і ховає клавіатуру
+                searchInput.blur();
             }
         }
 
-        // Ховаємо клавіатуру, якщо користувач торкнувся екрану і потягнув
         window.addEventListener('touchmove', hideKeyboard, { passive: true });
-        // Ховаємо клавіатуру, якщо відбувся звичайний скрол
         window.addEventListener('scroll', hideKeyboard, { passive: true });
-        // ---------------------------------------------------------
 
         function switchPage(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -137,7 +136,7 @@
         }
 
         async function triggerSearch() {
-            hideKeyboard(); // Одразу ховаємо клавіатуру при натисканні Search
+            hideKeyboard();
             
             const query = document.getElementById('searchInput').value.trim();
             if (!query) return;
@@ -146,7 +145,6 @@
             document.getElementById('searchResults').style.display = 'none';
             
             try {
-                // Робимо один великий запит на 100 треків, з них витягнемо і обкладинки для артистів!
                 const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=100`);
                 const data = await res.json();
                 renderSearchResults(data.results, query);
@@ -167,8 +165,6 @@
             const queryLower = searchQuery.toLowerCase();
             const artistScores = new Map();
             
-            // Збираємо всіх артистів і даємо їм 1 бал за кожну знайдену пісню
-            // ВИКОРИСТОВУЄМО обкладинку першої знайденої пісні як аватарку артиста
             tracks.forEach(t => { 
                 if(!artistScores.has(t.artistId)) {
                     artistScores.set(t.artistId, {
@@ -181,14 +177,12 @@
                 artistScores.get(t.artistId).score += 1;
             });
             
-            // МАГІЯ ПРІОРИТЕТУ: Якщо ти ввів частину або повне ім'я артиста, він отримує +100 балів!
             artistScores.forEach(a => {
                 if (a.name.toLowerCase().includes(queryLower)) {
                     a.score += 100;
                 }
             });
             
-            // Сортуємо і беремо топ 10 артистів для горизонтального скролу
             const sortedArtists = Array.from(artistScores.values()).sort((a, b) => b.score - a.score).slice(0, 10);
             
             if (sortedArtists.length > 0) {
@@ -203,7 +197,6 @@
                 document.getElementById('artistsSection').style.display = 'none';
             }
 
-            // 2. Готуємо пісні для нескінченного скролу
             allTracks = tracks;
             currentTrackIndex = 0;
             loadMoreTracks();
@@ -226,7 +219,6 @@
             currentTrackIndex += TRACKS_PER_PAGE;
         }
 
-        // Обсервер для нескінченного скролу (коли доходимо до низу екрану - вантажимо ще)
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
                 loadMoreTracks();
@@ -235,7 +227,7 @@
         observer.observe(document.getElementById('loadMoreTrigger'));
 
         async function openArtistProfile(id, name, img) {
-            hideKeyboard(); // Ховаємо клавіатуру при переході на сторінку артиста
+            hideKeyboard();
             switchPage('artistPage');
             document.getElementById('artistName').innerText = name;
             document.getElementById('artistAvatar').src = img;
@@ -271,7 +263,7 @@
         }
 
         async function openAlbumPage(id, name, img, artist) {
-            hideKeyboard(); // Ховаємо клавіатуру при переході на сторінку альбому
+            hideKeyboard();
             switchPage('albumPage');
             document.getElementById('albumTitleLarge').innerText = name;
             document.getElementById('albumArtistSubtitle').innerText = artist;
