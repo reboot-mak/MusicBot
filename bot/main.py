@@ -36,7 +36,7 @@ if os.name == "nt":
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 # 👇 2. YOUR NETLIFY MINI APP URL:
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://elegant-figolla-28fb3f.netlify.app/")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://creative-biscotti-47c598.netlify.app")
 
 # 👇 3. NUMBER OF SONGS PER PAGE IN CHAT SEARCH:
 ITEMS_PER_PAGE = 5
