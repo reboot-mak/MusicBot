@@ -33,7 +33,7 @@ if os.name == "nt":
 
 # =====================================================================
 # 👇 1. YOUR BOT TOKEN:
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8753108169:AAFhuGzE2N06ETjawJuTAljCn6TnQchzOPY")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 # 👇 2. YOUR NETLIFY MINI APP URL:
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://elegant-figolla-28fb3f.netlify.app/")
